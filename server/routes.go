@@ -960,6 +960,11 @@ func allowedHostsMiddleware(addr net.Addr) gin.HandlerFunc {
 		}
 
 		if allowedHost(host) {
+			if c.Request.Method == "OPTIONS" {
+				c.AbortWithStatus(http.StatusNoContent)
+				return
+			}
+
 			c.Next()
 			return
 		}
@@ -974,6 +979,8 @@ func (s *Server) GenerateRoutes() http.Handler {
 	config.AllowBrowserExtensions = true
 
 	if allowedOrigins := strings.Trim(os.Getenv("OLLAMA_ORIGINS"), "\"'"); allowedOrigins != "" {
+		config.AllowHeaders = append(config.AllowHeaders, "Authorization")
+		config.AllowMethods = append(config.AllowMethods, "OPTIONS")
 		config.AllowOrigins = strings.Split(allowedOrigins, ",")
 	}
 
